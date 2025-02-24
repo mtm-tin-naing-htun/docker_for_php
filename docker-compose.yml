@@ -1,0 +1,44 @@
+version: '3'
+volumes:
+  maildir: {}
+services:
+  app:
+    ports:
+      - "8000:80"
+    build: ./app
+    container_name: app
+    privileged: true
+    volumes:
+      - ./src:/var/www/html
+      - ./app/php.ini:/etc/php.ini
+    command: >
+      /sbin/init postfix start
+  db:
+    container_name: db
+    build:
+      context: ./db
+      args:
+        MYSQL_USER: ${DB_USERNAME}
+        MYSQL_PASSWORD: ${DB_USERNAME}
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: 'Myanmar/Yangon'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:3306 
+  gmailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "8025:8025"
+    environment:
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /tmp
+    volumes:
+      - maildir:/tmp
