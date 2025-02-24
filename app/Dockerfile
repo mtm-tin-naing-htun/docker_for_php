@@ -25,19 +25,19 @@ zip \
 unzip \
 libmemcached && \
 # php5.5
-yum install -y --enablerepo=remi,remi-php74 \
-php74-php \
-php74-php-mbstring \
-php74-php-zip \
-php74-php-gd \
-php74-php-mysqlnd \
-php74-php-pdo \
-php74-php-pdo-dblib \
-php74-php-pdo-firebird \
-php74-php-xml \
-php74-php-pecl-xdebug
+yum install -y --enablerepo=remi,remi-php55 \
+php55-php \
+php55-php-mbstring \
+php55-php-zip \
+php55-php-gd \
+php55-php-mysqlnd \
+php55-php-pdo \
+php55-php-pdo-dblib \
+php55-php-pdo-firebird \
+php55-php-xml \
+php55-php-pecl-xdebug
 
-RUN ln /usr/bin/php74 /usr/bin/php
+RUN ln /usr/bin/php55 /usr/bin/php
 
 # Postfix install
 RUN yum install -y postfix cyrus-sasl cyrus-sasl-plain mailx telnet
