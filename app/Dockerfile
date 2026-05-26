@@ -1,16 +1,19 @@
-FROM amazonlinux:2023
+FROM amazonlinux:2
 
-RUN yum update -y \
+RUN amazon-linux-extras install -y epel \
+# php rep
+&& yum install -y http://rpms.remirepo.net/enterprise/remi-release-7.rpm \
+&& yum update -y 
+
 # httpd
-&& yum install -y httpd \
+RUN yum install -y httpd \
 libedit ncurses-compat-libs \
-# php
 freetype \
 libjpeg-turbo \
-t1lib \
-libXpm \
-harfbuzz \
-libtiff \
+t1lib \ 
+libXpm \ 
+harfbuzz \ 
+libtiff \ 
 fontconfig \
 libtool-ltdl \
 libxslt \
@@ -20,39 +23,37 @@ less \
 git \
 zip \
 unzip \
-procps \
-libxml2 \
-php8.3.x86_64 \
-php8.3-bcmath.x86_64 \
-php8.3-cli.x86_64 \
-php8.3-common.x86_64 \
-php8.3-devel.x86_64 \
-php8.3-gd.x86_64 \
-php8.3-fpm.x86_64 \
-php8.3-mbstring.x86_64 \
-php8.3-pdo.x86_64 \
-php8.3-xml.x86_64 \
-php8.3-mysqlnd.x86_64 \
-php8.3-intl.x86_64 \
-php8.3-intl.x86_64 \
-php-pear.noarch \
-php8.3-zip.x86_64
-RUN yum install -y php8.3-devel php-pear libzip libzip-devel \
-    && pecl install zip
+libmemcached && \
+# php5.5
+yum install -y --enablerepo=remi,remi-php74 \
+php74-php \
+php74-php-mbstring \
+php74-php-zip \
+php74-php-gd \
+php74-php-mysqlnd \
+php74-php-pdo \
+php74-php-pdo-dblib \
+php74-php-pdo-firebird \
+php74-php-xml \
+php74-php-pecl-xdebug
 
-# postfix
+RUN ln /usr/bin/php74 /usr/bin/php
+
+# Postfix install
+RUN yum install -y postfix cyrus-sasl cyrus-sasl-plain mailx telnet
+
 ADD main.cf /etc/postfix/main.cf
-RUN chown -R root:root /etc/postfix/ \
-&& chmod 644 /etc/postfix/main.cf
 
-# apache conf
+# Apache configuration
 ADD httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf
 ADD httpd/conf.d/app.conf /etc/httpd/conf.d/app.conf
 
-ENV APACHE_LOG_DIR /var/log/httpd
-# systemctl
 RUN systemctl enable httpd.service
 
 RUN yum clean all && rm -rf /var/cache/yum/*
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Copy Composer from the official Composer image
+COPY --from=composer:2.3.9 /usr/bin/composer /usr/bin/composer
+
+# Ensure Apache runs in the foreground
+CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
