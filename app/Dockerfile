@@ -37,8 +37,11 @@ php8.3-intl.x86_64 \
 php8.3-intl.x86_64 \
 php-pear.noarch \
 php8.3-zip.x86_64
+# pecl exits 139 after a successful install (PHP shutdown segfault). The
+# distro php8.3-zip package already provides the extension; keep the pecl
+# rebuild, but do not fail the image when zip.so is in place.
 RUN yum install -y php8.3-devel php-pear libzip libzip-devel \
-    && pecl install zip
+    && (pecl install zip || test -f /usr/lib64/php8.3/modules/zip.so)
 
 # postfix
 ADD main.cf /etc/postfix/main.cf
